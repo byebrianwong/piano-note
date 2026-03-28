@@ -1,0 +1,435 @@
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --blue: #6366f1;
+  --green: #22c55e;
+  --red: #ef4444;
+  --amber: #f59e0b;
+  --purple: #a855f7;
+  --bg-1: #0a0a1a;
+  --bg-2: #1a0a2e;
+  --glass-bg: rgba(255, 255, 255, 0.04);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --text: #e2e8f0;
+  --text-dim: #94a3b8;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: linear-gradient(135deg, var(--bg-1) 0%, var(--bg-2) 100%);
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: -30%;
+  left: 30%;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  bottom: -20%;
+  right: 20%;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.06) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+#app {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+/* ─── UI Layer ─── */
+.ui-layer {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+  z-index: 50;
+}
+
+.ui-layer > * {
+  pointer-events: auto;
+}
+
+/* ─── Menu Screen ─── */
+.menu-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  padding-top: 60px;
+  animation: fadeSlideIn 500ms ease-out;
+}
+
+.menu-title {
+  font-size: 40px;
+  font-weight: 800;
+  letter-spacing: -1px;
+  background: linear-gradient(135deg, #e2e8f0, #a855f7, #6366f1);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 4px;
+}
+
+.menu-subtitle {
+  color: var(--text-dim);
+  font-size: 15px;
+  font-weight: 400;
+  margin-top: -16px;
+  letter-spacing: 0.5px;
+}
+
+.mode-cards {
+  display: flex;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.mode-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  padding: 24px 28px;
+  width: 200px;
+  cursor: pointer;
+  transition: transform 200ms, box-shadow 200ms, border-color 200ms;
+  text-align: center;
+}
+
+.mode-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.mode-card-icon {
+  font-size: 36px;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.mode-card-title {
+  font-size: 17px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.mode-card-desc {
+  font-size: 12px;
+  color: var(--text-dim);
+  line-height: 1.4;
+}
+
+/* ─── Game HUD ─── */
+.game-hud {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 30px;
+  gap: 12px;
+  animation: fadeSlideIn 400ms ease-out;
+}
+
+.hud-top-bar {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.btn-back {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  color: var(--text-dim);
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  transition: background 150ms;
+}
+
+.btn-back:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text);
+}
+
+.score-display {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text);
+  min-width: 80px;
+  text-align: center;
+}
+
+.score-display.bump {
+  animation: scoreBump 300ms ease-out;
+}
+
+@keyframes scoreBump {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+
+.streak-display {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.streak-fire {
+  color: var(--amber);
+  font-size: 18px;
+}
+
+.hud-prompt {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text-dim);
+  min-height: 24px;
+  transition: opacity 200ms;
+}
+
+.hud-prompt .highlight {
+  color: var(--blue);
+  font-weight: 700;
+}
+
+.hud-prompt .correct-text {
+  color: var(--green);
+  font-weight: 700;
+}
+
+.hud-prompt .wrong-text {
+  color: var(--red);
+  font-weight: 700;
+}
+
+.replay-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 2px;
+}
+
+.btn-replay {
+  background: rgba(99, 102, 241, 0.12);
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  color: var(--blue);
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  transition: background 150ms;
+}
+
+.btn-replay:hover {
+  background: rgba(99, 102, 241, 0.2);
+}
+
+/* ─── Song Select ─── */
+.song-select-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding-top: 40px;
+  animation: fadeSlideIn 400ms ease-out;
+}
+
+.song-select-title {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.song-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, 180px);
+  gap: 12px;
+  justify-content: center;
+  max-width: 800px;
+}
+
+.song-card {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  padding: 16px;
+  cursor: pointer;
+  transition: transform 200ms, box-shadow 200ms;
+  text-align: left;
+}
+
+.song-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.song-card-title {
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.song-card-artist {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-bottom: 8px;
+}
+
+.song-card-diff {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.song-card-diff.easy {
+  background: rgba(34, 197, 94, 0.15);
+  color: var(--green);
+}
+
+.song-card-diff.medium {
+  background: rgba(245, 158, 11, 0.15);
+  color: var(--amber);
+}
+
+.song-card-diff.hard {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--red);
+}
+
+/* ─── Song HUD ─── */
+.song-hud {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 30px;
+  gap: 10px;
+  animation: fadeSlideIn 400ms ease-out;
+}
+
+.song-title-display {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.song-progress {
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+.song-progress-bar {
+  width: 200px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.song-progress-fill {
+  height: 100%;
+  background: var(--blue);
+  border-radius: 2px;
+  transition: width 300ms ease-out;
+}
+
+/* ─── Animations ─── */
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-out {
+  animation: fadeOut 300ms ease-out forwards;
+}
+
+@keyframes fadeOut {
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+/* ─── Round result banner ─── */
+.result-banner {
+  font-size: 15px;
+  font-weight: 600;
+  padding: 8px 20px;
+  border-radius: 8px;
+  animation: fadeSlideIn 200ms ease-out;
+}
+
+.result-banner.correct {
+  background: rgba(34, 197, 94, 0.12);
+  color: var(--green);
+  border: 1px solid rgba(34, 197, 94, 0.25);
+}
+
+.result-banner.wrong {
+  background: rgba(239, 68, 68, 0.12);
+  color: var(--red);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+/* ─── Mode indicator ─── */
+.mode-badge {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--text-dim);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  padding: 4px 12px;
+  border-radius: 4px;
+}

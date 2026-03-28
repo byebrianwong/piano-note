@@ -1,0 +1,305 @@
+/* ─── 3D Scene Container ─── */
+.piano-scene {
+  perspective: 1200px;
+  perspective-origin: 50% 40%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 20px;
+  user-select: none;
+}
+
+/* ─── Piano Body ─── */
+.piano-body {
+  position: relative;
+  transform-style: preserve-3d;
+  transform: rotateX(25deg) rotateY(0deg);
+  will-change: transform;
+  transition: transform 0.05s linear;
+  padding: 18px 18px 10px 18px;
+  background: linear-gradient(180deg, #1e1e32 0%, #16162a 100%);
+  border-radius: 8px 8px 4px 4px;
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.7),
+    0 8px 20px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.piano-body::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(180deg, rgba(255,255,255,0.04) 0%, transparent 40%);
+  pointer-events: none;
+  z-index: 100;
+}
+
+/* ─── Key Container ─── */
+.keys-container {
+  position: relative;
+  display: flex;
+  transform-style: preserve-3d;
+  height: 220px;
+}
+
+/* ─── White Key ─── */
+.piano-key {
+  position: relative;
+  transform-style: preserve-3d;
+  cursor: pointer;
+  flex-shrink: 0;
+  width: 52px;
+  height: 220px;
+  margin-right: 1px;
+  transition: transform 80ms ease-out;
+  transform-origin: top center;
+}
+
+.piano-key:last-child {
+  margin-right: 0;
+}
+
+/* Top face */
+.piano-key .key-top {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, #f5f5f5 0%, #e8e8e8 60%, #ddd 100%);
+  border-radius: 0 0 5px 5px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-top: none;
+  box-shadow:
+    inset 0 -4px 6px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  transition: background 150ms, box-shadow 150ms;
+}
+
+/* Front face (visible depth) */
+.piano-key .key-front {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 14px;
+  background: linear-gradient(180deg, #d4d4d4 0%, #b8b8b8 100%);
+  transform-origin: top center;
+  transform: rotateX(-90deg);
+  border-radius: 0 0 3px 3px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-top: none;
+}
+
+/* ─── White Key States ─── */
+.piano-key.pressed {
+  transform: rotateX(-1.8deg);
+}
+
+.piano-key.pressed .key-top {
+  background: linear-gradient(180deg, #eee 0%, #e0e0e0 60%, #d5d5d5 100%);
+  box-shadow:
+    inset 0 -2px 3px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.piano-key.pressed .key-front {
+  height: 11px;
+}
+
+/* ─── Black Key ─── */
+.piano-key-black {
+  position: absolute;
+  transform-style: preserve-3d;
+  cursor: pointer;
+  width: 34px;
+  height: 145px;
+  z-index: 10;
+  transform: translateZ(10px);
+  transform-origin: top center;
+  transition: transform 60ms ease-out;
+}
+
+.piano-key-black .key-top {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, #303030 0%, #1a1a1a 50%, #111 100%);
+  border-radius: 0 0 4px 4px;
+  box-shadow:
+    0 4px 8px rgba(0, 0, 0, 0.6),
+    0 2px 3px rgba(0, 0, 0, 0.4),
+    inset 0 -4px 5px rgba(0, 0, 0, 0.4),
+    inset 0 1px 1px rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(0, 0, 0, 0.5);
+  transition: background 150ms, box-shadow 150ms, transform 60ms;
+}
+
+.piano-key-black .key-front {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 10px;
+  background: linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
+  transform-origin: top center;
+  transform: rotateX(-90deg);
+  border-radius: 0 0 3px 3px;
+}
+
+/* glossy strip on top of black key */
+.piano-key-black .key-gloss {
+  position: absolute;
+  top: 4px;
+  left: 15%;
+  right: 15%;
+  height: 55%;
+  background: linear-gradient(180deg,
+    rgba(255,255,255,0.09) 0%,
+    rgba(255,255,255,0.03) 40%,
+    transparent 100%);
+  border-radius: 2px;
+  pointer-events: none;
+}
+
+/* ─── Black Key States ─── */
+.piano-key-black.pressed {
+  transform: translateZ(7px) rotateX(-1.5deg);
+}
+
+.piano-key-black.pressed .key-top {
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.5),
+    0 1px 2px rgba(0, 0, 0, 0.3),
+    inset 0 -2px 3px rgba(0, 0, 0, 0.5),
+    inset 0 1px 1px rgba(255, 255, 255, 0.05);
+}
+
+/* ─── Highlight States ─── */
+.piano-key.reference .key-top,
+.piano-key-black.reference .key-top {
+  box-shadow:
+    0 0 20px 6px rgba(99, 102, 241, 0.5),
+    0 0 40px 12px rgba(99, 102, 241, 0.2),
+    inset 0 0 12px rgba(99, 102, 241, 0.15);
+}
+
+.piano-key.reference .key-top {
+  background: linear-gradient(180deg, #e8e8ff 0%, #d5d5f5 60%, #c8c8ec 100%);
+}
+
+.piano-key-black.reference .key-top {
+  background: linear-gradient(180deg, #3a3a60 0%, #2a2a4a 50%, #1a1a35 100%);
+}
+
+/* Correct guess */
+.piano-key.correct .key-top,
+.piano-key-black.correct .key-top {
+  animation: correctPulse 600ms ease-out;
+}
+
+.piano-key.correct .key-top {
+  background: linear-gradient(180deg, #d4ffd4 0%, #b8f5b8 60%, #a0e8a0 100%);
+  box-shadow: 0 0 20px 6px rgba(34, 197, 94, 0.5), 0 0 40px 12px rgba(34, 197, 94, 0.2);
+}
+
+.piano-key-black.correct .key-top {
+  background: linear-gradient(180deg, #1a4a1a 0%, #0f350f 50%, #0a250a 100%);
+  box-shadow: 0 0 20px 6px rgba(34, 197, 94, 0.5), 0 0 40px 12px rgba(34, 197, 94, 0.2);
+}
+
+@keyframes correctPulse {
+  0% { filter: brightness(1.6); }
+  100% { filter: brightness(1); }
+}
+
+/* Wrong guess */
+.piano-key.wrong .key-top,
+.piano-key-black.wrong .key-top {
+  animation: wrongShake 400ms ease-out;
+}
+
+.piano-key.wrong .key-top {
+  background: linear-gradient(180deg, #ffd4d4 0%, #f5b8b8 60%, #e8a0a0 100%);
+  box-shadow: 0 0 20px 6px rgba(239, 68, 68, 0.5);
+}
+
+.piano-key-black.wrong .key-top {
+  background: linear-gradient(180deg, #4a1a1a 0%, #350f0f 50%, #250a0a 100%);
+  box-shadow: 0 0 20px 6px rgba(239, 68, 68, 0.5);
+}
+
+@keyframes wrongShake {
+  0%, 100% { transform: translateX(0); }
+  15% { transform: translateX(-4px); }
+  30% { transform: translateX(4px); }
+  45% { transform: translateX(-3px); }
+  60% { transform: translateX(3px); }
+  75% { transform: translateX(-1px); }
+}
+
+/* ─── Key Label ─── */
+.key-label {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.25);
+  pointer-events: none;
+  transition: color 200ms;
+  z-index: 2;
+}
+
+.piano-key:hover .key-label {
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.piano-key-black .key-label {
+  color: rgba(255, 255, 255, 0.2);
+  font-size: 10px;
+  bottom: 10px;
+}
+
+.piano-key-black:hover .key-label {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* ─── Hover effect ─── */
+.piano-key:hover:not(.pressed) .key-top {
+  background: linear-gradient(180deg, #fafafa 0%, #efefef 60%, #e5e5e5 100%);
+}
+
+.piano-key-black:hover:not(.pressed) .key-top {
+  background: linear-gradient(180deg, #3a3a3a 0%, #222 50%, #181818 100%);
+}
+
+/* ─── Particles ─── */
+.particle {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 200;
+  animation: particleFly 700ms ease-out forwards;
+}
+
+@keyframes particleFly {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--dx), var(--dy)) scale(0);
+  }
+}
+
+/* ─── Disabled state ─── */
+.piano-body.disabled {
+  pointer-events: none;
+}
+.piano-body.disabled .piano-key .key-top,
+.piano-body.disabled .piano-key-black .key-top {
+  opacity: 0.7;
+}

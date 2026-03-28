@@ -58,3 +58,30 @@ export function getRandomNoteDifferentFrom(exclude: NoteDefinition): NoteDefinit
   } while (note.midi === exclude.midi);
   return note;
 }
+
+// Easy mode: one octave (C3-B3), and mystery notes are usually within 2-3 semitones
+const EASY_NOTES = buildNoteRange(48, 59); // C3 to B3
+
+export function getRandomEasyNote(): NoteDefinition {
+  return EASY_NOTES[Math.floor(Math.random() * EASY_NOTES.length)];
+}
+
+export function getNearbyNote(reference: NoteDefinition): NoteDefinition {
+  // 70% chance: within 1-3 semitones, 30% chance: anywhere in the octave
+  const useNearby = Math.random() < 0.7;
+  if (useNearby) {
+    const maxStep = 3;
+    const candidates = EASY_NOTES.filter(
+      n => n.midi !== reference.midi &&
+           Math.abs(n.midi - reference.midi) <= maxStep
+    );
+    if (candidates.length > 0) {
+      return candidates[Math.floor(Math.random() * candidates.length)];
+    }
+  }
+  let note: NoteDefinition;
+  do {
+    note = EASY_NOTES[Math.floor(Math.random() * EASY_NOTES.length)];
+  } while (note.midi === reference.midi);
+  return note;
+}

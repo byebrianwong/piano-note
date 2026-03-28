@@ -45,6 +45,7 @@ export function scoreWrong(state: ScoreState): ScoreState {
 }
 
 export interface HighScores {
+  easy: number;
   normal: number;
   hard: number;
 }
@@ -54,10 +55,10 @@ export function loadHighScores(): HighScores {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) return JSON.parse(raw);
   } catch { /* ignore */ }
-  return { normal: 0, hard: 0 };
+  return { easy: 0, normal: 0, hard: 0 };
 }
 
-export function saveHighScore(mode: 'normal' | 'hard', score: number) {
+export function saveHighScore(mode: 'easy' | 'normal' | 'hard', score: number) {
   const scores = loadHighScores();
   if (score > scores[mode]) {
     scores[mode] = score;

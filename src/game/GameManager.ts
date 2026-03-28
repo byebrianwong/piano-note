@@ -5,6 +5,8 @@ import {
   type NoteDefinition,
   getRandomNote,
   getRandomNoteDifferentFrom,
+  getRandomEasyNote,
+  getNearbyNote,
   getNoteByName,
   NOTES,
 } from '../piano/notes';
@@ -17,7 +19,7 @@ import {
 } from './scoring';
 import { SONGS, type Song } from './songs';
 
-export type GameMode = 'normal' | 'hard' | 'song';
+export type GameMode = 'easy' | 'normal' | 'hard' | 'song';
 
 export type GamePhase =
   | 'menu'
@@ -85,7 +87,7 @@ export class GameManager {
 
     // Pick reference note
     if (!this.referenceNote) {
-      this.referenceNote = getRandomNote();
+      this.referenceNote = this.mode === 'easy' ? getRandomEasyNote() : getRandomNote();
     }
 
     // Play & highlight reference
@@ -103,7 +105,9 @@ export class GameManager {
     this.mysteryNotes = [];
     let lastNote = this.referenceNote;
     for (let i = 0; i < count; i++) {
-      const mystery = getRandomNoteDifferentFrom(lastNote);
+      const mystery = this.mode === 'easy'
+        ? getNearbyNote(lastNote)
+        : getRandomNoteDifferentFrom(lastNote);
       this.mysteryNotes.push(mystery);
       lastNote = mystery;
     }
@@ -161,7 +165,9 @@ export class GameManager {
       this.piano.highlightKey(guessedNote.midi, 'wrong');
       this.piano.highlightKey(expected.midi, 'correct');
       this.scoreState = scoreWrong(this.scoreState);
-      saveHighScore(this.mode as 'normal' | 'hard', this.scoreState.score);
+      if (this.mode !== 'song') {
+        saveHighScore(this.mode as 'easy' | 'normal' | 'hard', this.scoreState.score);
+      }
       this.emit();
 
       await this.delay(2000);
@@ -170,19 +176,17 @@ export class GameManager {
     }
   }
 
-  replayReference() {
-    if (this.referenceNote) {
-      this.piano.animatePress(this.referenceNote.midi);
-      playNote(this.referenceNote.frequency);
-    }
-  }
+  replayRound() {
+    if (!this.referenceNote) return;
+    // Play reference first, then mystery note(s) after a gap
+    this.piano.animatePress(this.referenceNote.midi);
+    playNote(this.referenceNote.frequency);
 
-  replayMystery() {
     this.mysteryNotes.forEach((note, i) => {
       setTimeout(() => {
         this.piano.animatePress(note.midi);
         playNote(note.frequency);
-      }, i * 900);
+      }, (i + 1) * 900);
     });
   }
 

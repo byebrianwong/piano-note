@@ -53,10 +53,16 @@ function renderMenu() {
     <span class="menu-title">Relative Pitch</span>
     <span class="menu-subtitle">Train your ear, one note at a time</span>
     <div class="mode-cards">
+      <div class="mode-card" data-mode="easy">
+        <span class="mode-card-icon">🌱</span>
+        <div class="mode-card-title">Easy</div>
+        <div class="mode-card-desc">One octave, notes are close together</div>
+        ${scores.easy > 0 ? `<div style="font-size:11px;color:var(--amber);margin-top:8px">Best: ${scores.easy}</div>` : ''}
+      </div>
       <div class="mode-card" data-mode="normal">
         <span class="mode-card-icon">🎵</span>
         <div class="mode-card-title">Normal</div>
-        <div class="mode-card-desc">Identify one mystery note after hearing a reference</div>
+        <div class="mode-card-desc">Identify one mystery note across two octaves</div>
         ${scores.normal > 0 ? `<div style="font-size:11px;color:var(--amber);margin-top:8px">Best: ${scores.normal}</div>` : ''}
       </div>
       <div class="mode-card" data-mode="hard">
@@ -87,7 +93,7 @@ function renderGameHud() {
   const s = game.scoreState;
   const hud = el('div', 'game-hud');
 
-  const modeName = game.mode === 'hard' ? 'HARD MODE' : 'NORMAL MODE';
+  const modeName = game.mode === 'hard' ? 'HARD MODE' : game.mode === 'easy' ? 'EASY MODE' : 'NORMAL MODE';
 
   let promptHtml = '';
   switch (game.phase) {
@@ -129,8 +135,7 @@ function renderGameHud() {
     <div class="hud-prompt">${promptHtml}</div>
     ${game.phase === 'awaiting-guess' ? `
       <div class="replay-buttons">
-        <button class="btn-replay" data-action="replay-ref">Replay Reference</button>
-        <button class="btn-replay" data-action="replay-mystery">Replay Mystery</button>
+        <button class="btn-replay" data-action="replay">Replay</button>
       </div>
     ` : ''}
   `;
@@ -138,8 +143,7 @@ function renderGameHud() {
   prevScore = s.score;
 
   hud.querySelector('.btn-back')?.addEventListener('click', () => game.goToMenu());
-  hud.querySelector('[data-action="replay-ref"]')?.addEventListener('click', () => game.replayReference());
-  hud.querySelector('[data-action="replay-mystery"]')?.addEventListener('click', () => game.replayMystery());
+  hud.querySelector('[data-action="replay"]')?.addEventListener('click', () => game.replayRound());
 
   uiLayer.appendChild(hud);
 }

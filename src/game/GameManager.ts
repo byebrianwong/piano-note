@@ -117,7 +117,6 @@ export class GameManager {
     this.emit();
 
     for (const mystery of this.mysteryNotes) {
-      this.piano.animatePress(mystery.midi);
       playNote(mystery.frequency);
       await this.delay(900);
     }
@@ -178,13 +177,12 @@ export class GameManager {
 
   replayRound() {
     if (!this.referenceNote) return;
-    // Play reference first, then mystery note(s) after a gap
+    // Play reference first (with animation), then mystery note(s) audio-only
     this.piano.animatePress(this.referenceNote.midi);
     playNote(this.referenceNote.frequency);
 
     this.mysteryNotes.forEach((note, i) => {
       setTimeout(() => {
-        this.piano.animatePress(note.midi);
         playNote(note.frequency);
       }, (i + 1) * 900);
     });

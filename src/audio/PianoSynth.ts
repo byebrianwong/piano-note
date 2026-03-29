@@ -10,77 +10,90 @@ export function playNote(frequency: number, options: PlayOptions = {}): void {
   const ctx = audioEngine.context;
   const now = ctx.currentTime;
 
+  // ── Master envelope with two-stage piano decay ──
   const envelope = ctx.createGain();
   envelope.gain.setValueAtTime(0, now);
 
-  // ADSR
-  const attack = 0.005;
-  const decay = 0.3;
-  const sustainLevel = 0.35 * velocity;
-  const release = 0.8;
+  const attack = 0.003;
+  const decayFast = Math.min(0.12, duration * 0.15);
+  const peakLevel = velocity;
+  const sustainLevel = 0.25 * velocity;
+  const release = Math.min(0.5, duration * 0.3);
+  const sustainEnd = Math.max(now + attack + decayFast + 0.1, now + duration - release);
 
-  envelope.gain.linearRampToValueAtTime(velocity, now + attack);
-  envelope.gain.linearRampToValueAtTime(sustainLevel, now + attack + decay);
-  envelope.gain.setValueAtTime(sustainLevel, now + duration - release);
-  envelope.gain.exponentialRampToValueAtTime(0.001, now + duration);
+  // Fast attack → quick drop to half → slow fade to sustain
+  envelope.gain.linearRampToValueAtTime(peakLevel, now + attack);
+  envelope.gain.exponentialRampToValueAtTime(peakLevel * 0.5, now + attack + decayFast);
+  envelope.gain.exponentialRampToValueAtTime(Math.max(sustainLevel, 0.01), sustainEnd);
+  envelope.gain.exponentialRampToValueAtTime(0.001, sustainEnd + release);
 
-  // Lowpass filter to soften
+  const totalDuration = sustainEnd - now + release;
+
+  // ── Bright lowpass filter (piano is a bright instrument) ──
   const filter = ctx.createBiquadFilter();
   filter.type = 'lowpass';
-  filter.frequency.setValueAtTime(4000, now);
-  filter.frequency.exponentialRampToValueAtTime(1500, now + duration);
-  filter.Q.value = 0.7;
+  filter.frequency.setValueAtTime(8000, now);
+  filter.frequency.exponentialRampToValueAtTime(3000, now + totalDuration);
+  filter.Q.value = 1.0;
 
   filter.connect(envelope);
   envelope.connect(audioEngine.output);
 
   const oscillators: OscillatorNode[] = [];
 
-  // 1. Triangle at fundamental
-  const osc1 = ctx.createOscillator();
-  osc1.type = 'triangle';
-  osc1.frequency.value = frequency;
-  const g1 = ctx.createGain();
-  g1.gain.value = 0.6;
-  osc1.connect(g1);
-  g1.connect(filter);
-  oscillators.push(osc1);
+  // ── Harmonic partials (sine waves at integer multiples) ──
+  const partials: [number, number, number][] = [
+    // [freqMultiplier, gain, detuneCents]
+    [1,   0.50, 0],      // fundamental
+    [1,   0.20, 1.5],    // detuned fundamental (chorus/warmth)
+    [2,   0.18, 0],      // 1st partial
+    [3,   0.10, 0],      // 2nd partial
+    [4,   0.05, 0],      // 3rd partial
+    [5,   0.025, 0],     // 4th partial
+  ];
 
-  // 2. Sine at fundamental + slight detune (chorus)
-  const osc2 = ctx.createOscillator();
-  osc2.type = 'sine';
-  osc2.frequency.value = frequency;
-  osc2.detune.value = 3;
-  const g2 = ctx.createGain();
-  g2.gain.value = 0.3;
-  osc2.connect(g2);
-  g2.connect(filter);
-  oscillators.push(osc2);
+  for (const [mult, gain, detune] of partials) {
+    const osc = ctx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.value = frequency * mult;
+    osc.detune.value = detune;
+    const g = ctx.createGain();
+    g.gain.value = gain;
+    osc.connect(g);
+    g.connect(filter);
+    oscillators.push(osc);
+  }
 
-  // 3. 1st harmonic (octave above) - brightness
-  const osc3 = ctx.createOscillator();
-  osc3.type = 'sine';
-  osc3.frequency.value = frequency * 2;
-  const g3 = ctx.createGain();
-  g3.gain.value = 0.12;
-  osc3.connect(g3);
-  g3.connect(filter);
-  oscillators.push(osc3);
+  // ── Percussive hammer noise burst ──
+  const noiseLength = 0.03;
+  const noiseBuffer = ctx.createBuffer(1, ctx.sampleRate * noiseLength, ctx.sampleRate);
+  const noiseData = noiseBuffer.getChannelData(0);
+  for (let i = 0; i < noiseData.length; i++) {
+    noiseData[i] = (Math.random() * 2 - 1) * 0.5;
+  }
+  const noiseSrc = ctx.createBufferSource();
+  noiseSrc.buffer = noiseBuffer;
 
-  // 4. 2nd harmonic - presence
-  const osc4 = ctx.createOscillator();
-  osc4.type = 'sine';
-  osc4.frequency.value = frequency * 3;
-  const g4 = ctx.createGain();
-  g4.gain.value = 0.06;
-  osc4.connect(g4);
-  g4.connect(filter);
-  oscillators.push(osc4);
+  const noiseFilter = ctx.createBiquadFilter();
+  noiseFilter.type = 'bandpass';
+  noiseFilter.frequency.value = Math.min(frequency * 4, 10000);
+  noiseFilter.Q.value = 0.5;
 
+  const noiseGain = ctx.createGain();
+  noiseGain.gain.setValueAtTime(0.35 * velocity, now);
+  noiseGain.gain.exponentialRampToValueAtTime(0.001, now + noiseLength);
+
+  noiseSrc.connect(noiseFilter);
+  noiseFilter.connect(noiseGain);
+  noiseGain.connect(envelope);
+
+  // ── Start and stop ──
   oscillators.forEach(o => {
     o.start(now);
-    o.stop(now + duration + 0.1);
+    o.stop(now + totalDuration + 0.05);
   });
+  noiseSrc.start(now);
+  noiseSrc.stop(now + noiseLength + 0.01);
 }
 
 export function playNoteSequence(

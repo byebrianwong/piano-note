@@ -1,4 +1,4 @@
-import { NOTES, WHITE_NOTES, BLACK_NOTES_LIST, type NoteDefinition } from './notes';
+import { NOTES, WHITE_NOTES, BLACK_NOTES_LIST, type NoteDefinition, getNoteByMidi } from './notes';
 import { playNote } from '../audio/PianoSynth';
 import './piano.css';
 
@@ -8,6 +8,26 @@ type KeyCallback = (note: NoteDefinition) => void;
 const BLACK_KEY_OFFSETS: Record<string, number> = {
   'C#': 0, 'D#': 1, 'F#': 3, 'G#': 4, 'A#': 5,
 };
+
+// Keyboard → MIDI mapping (standard virtual piano layout)
+//  Octave 1 (C3-B3):  Z X C V B N M  /  S D _ G H J
+//  Octave 2 (C4-B4):  Q W E R T Y U  /  2 3 _ 5 6 7
+const KEY_TO_MIDI: Record<string, number> = {
+  // Octave 1 white keys (bottom row)
+  'z': 48, 'x': 50, 'c': 52, 'v': 53, 'b': 55, 'n': 57, 'm': 59,
+  // Octave 1 black keys (home row)
+  's': 49, 'd': 51, 'g': 54, 'h': 56, 'j': 58,
+  // Octave 2 white keys (qwerty row)
+  'q': 60, 'w': 62, 'e': 64, 'r': 65, 't': 67, 'y': 69, 'u': 71,
+  // Octave 2 black keys (number row)
+  '2': 61, '3': 63, '5': 66, '6': 68, '7': 70,
+};
+
+// Reverse: MIDI → keyboard label (uppercase for display)
+const MIDI_TO_KEY_LABEL: Record<number, string> = {};
+for (const [key, midi] of Object.entries(KEY_TO_MIDI)) {
+  MIDI_TO_KEY_LABEL[midi] = key.toUpperCase();
+}
 
 export class Piano {
   private el: HTMLElement;
@@ -40,6 +60,7 @@ export class Piano {
     container.appendChild(this.el);
 
     this.startMouseTracking();
+    this.startKeyboardListener();
   }
 
   private buildWhiteKeys() {
@@ -57,6 +78,14 @@ export class Piano {
       const label = document.createElement('div');
       label.className = 'key-label';
       label.textContent = note.name;
+
+      const kbLabel = MIDI_TO_KEY_LABEL[note.midi];
+      if (kbLabel) {
+        const kb = document.createElement('div');
+        kb.className = 'key-kb-label';
+        kb.textContent = kbLabel;
+        key.appendChild(kb);
+      }
 
       key.appendChild(top);
       key.appendChild(front);
@@ -100,6 +129,14 @@ export class Piano {
       const label = document.createElement('div');
       label.className = 'key-label';
       label.textContent = note.name;
+
+      const kbLabel = MIDI_TO_KEY_LABEL[note.midi];
+      if (kbLabel) {
+        const kb = document.createElement('div');
+        kb.className = 'key-kb-label';
+        kb.textContent = kbLabel;
+        key.appendChild(kb);
+      }
 
       key.appendChild(top);
       key.appendChild(front);
@@ -178,6 +215,24 @@ export class Piano {
       this.el.appendChild(p);
       setTimeout(() => p.remove(), 700);
     }
+  }
+
+  private heldKeys = new Set<string>();
+
+  private startKeyboardListener() {
+    document.addEventListener('keydown', (e) => {
+      if (e.repeat) return;
+      const k = e.key.toLowerCase();
+      if (k in KEY_TO_MIDI && !this.heldKeys.has(k)) {
+        this.heldKeys.add(k);
+        const midi = KEY_TO_MIDI[k];
+        const note = getNoteByMidi(midi);
+        if (note) this.handleKeyPress(note);
+      }
+    });
+    document.addEventListener('keyup', (e) => {
+      this.heldKeys.delete(e.key.toLowerCase());
+    });
   }
 
   private startMouseTracking() {
